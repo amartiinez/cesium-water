@@ -4,62 +4,231 @@
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.128/Build/Cesium/Cesium.js"></script>
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.128/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
   <link href="style.css" rel="stylesheet">
+  <style>
+    .infoBox {
+      position: absolute;
+      background: rgba(0, 32, 77, 0.9);
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: 'Arial', sans-serif;
+      max-width: 300px;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      border-left: 5px solid #0078ff;
+    }
+    .infoBox h3 {
+      margin-top: 0;
+      color: #0078ff;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      padding-bottom: 8px;
+    }
+    .infoBox .data-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 5px 0;
+    }
+    .infoBox .data-label {
+      font-weight: bold;
+      color: #8ecaff;
+    }
+    .infoBox .data-value {
+      text-align: right;
+    }
+    .infoBox .potability {
+      margin-top: 10px;
+      padding: 8px;
+      text-align: center;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .infoBox .not-potable {
+      background-color: #ff3b30;
+    }
+    .infoBox .date {
+      font-size: 0.8em;
+      text-align: right;
+      margin-top: 10px;
+      color: #8ecaff;
+    }
+  </style>
 </head>
 <body>
   <div id="cesiumContainer"></div>
+  <div id="infoBox" class="infoBox"></div>
   <script type="module">
     Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIzYjYyMTRlZS02ODVkLTRmNjMtOWJkOS00YTEyODE3ZTU3NmUiLCJpZCI6MjkxNjE2LCJpYXQiOjE3NDQwMjAxMzB9.sBsqip4K7A5iMFiYBLeMY9HBkVK0jXWVqBxwttCQtm4';
     
+    // Definir las coordenadas exactas del Parque del Retiro
+    const retiroBounds = {
+      west: -3.688,
+      south: 40.411,
+      east: -3.676,
+      north: 40.419
+    };
+
+    // Configurar la vista predeterminada antes de crear el visor
+    // Esto hace que el mapa se muestre estático en el Retiro al cargar
+    Cesium.Camera.DEFAULT_VIEW_RECTANGLE = Cesium.Rectangle.fromDegrees(
+      retiroBounds.west, 
+      retiroBounds.south, 
+      retiroBounds.east, 
+      retiroBounds.north
+    );
+    Cesium.Camera.DEFAULT_VIEW_FACTOR = 0; // Para que se ajuste exactamente al rectángulo
+    
+    // Configuración del visor
     const viewer = new Cesium.Viewer('cesiumContainer', {
       terrain: Cesium.Terrain.fromWorldTerrain(),
+      sceneMode: Cesium.SceneMode.SCENE3D,
+      sceneModePicker: false,
+      baseLayerPicker: false,
+      homeButton: false, // Desactivar el botón de home para mantener la vista estática
+      navigationHelpButton: false,
+      animation: false,
+      timeline: false
     });
-
-    viewer.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(-3.684500, 40.415260, 2000)
-    });
-
-    // Definir las coordenadas de los cuerpos de agua del Retiro
-    const waterBodies = [
+    
+    // Mejorar visualización del terreno
+    viewer.scene.globe.depthTestAgainstTerrain = true;
+    
+    // Definir los puntos de agua con datos de potabilidad
+    const waterPoints = [
       {
-        name: "Estanque Grande",
-        coordinates: [
-          -3.6826, 40.4157,
-          -3.6818, 40.4157,
-          -3.6818, 40.4152,
-          -3.6826, 40.4152,
-        ]
+        id: "estanque_grande",
+        name: "Estanque Grande del Retiro",
+        longitude: -3.6838806081743427, 
+        latitude: 40.4170909021473,
+        sensorData: {
+          labels: ["sensor-1-libelium-estanque-grande"],
+          ph: [6.8, 7.1, 6.9],
+          solids: [342, 356, 349],
+          conductivity: [712, 698, 705],
+          organic: [5.7, 6.2, 5.9],
+          turbidity: [4.8, 5.2, 5.0],
+          potability: [false],
+          timestamp: "08/04/2025 14:30"
+        }
       },
       {
-        name: "Estanque de las Campanillas",
-        coordinates: [
-          -3.6864, 40.4135,
-          -3.6860, 40.4135,
-          -3.6860, 40.4132,
-          -3.6864, 40.4132,
-        ]
+        id: "palacio_cristal",
+        name: "Estanque del Palacio de Cristal",
+        longitude: -3.6814, 
+        latitude: 40.414,
+        sensorData: {
+          labels: ["sensor-1-libelium-palacio-cristal"],
+          ph: [7.2, 7.0, 7.1],
+          solids: [298, 310, 305],
+          conductivity: [680, 675, 678],
+          organic: [4.9, 5.1, 5.0],
+          turbidity: [3.8, 4.0, 3.9],
+          potability: [false],
+          timestamp: "08/04/2025 14:35"
+        }
       }
     ];
 
-    // Crear entidades para los cuerpos de agua
-    waterBodies.forEach(body => {
+    // Crear entidades para los puntos de agua (usando entidades en lugar de primitivas)
+    waterPoints.forEach(point => {
       viewer.entities.add({
-        name: body.name,
-        polygon: {
-          hierarchy: Cesium.Cartesian3.fromDegreesArray(body.coordinates),
-          material: Cesium.Color.BLUE.withAlpha(0.5),
-          extrudedHeight: 0.5
+        id: point.id,
+        name: point.name,
+        position: Cesium.Cartesian3.fromDegrees(point.longitude, point.latitude),
+        point: {
+          pixelSize: 10,
+          color: Cesium.Color.BLUE,
+          outlineColor: Cesium.Color.WHITE,
+          outlineWidth: 2,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, // Fijar al terreno
+          disableDepthTestDistance: Number.POSITIVE_INFINITY // Asegurar visibilidad
+        },
+        properties: {
+          sensorData: point.sensorData
         }
       });
     });
 
-    // Añadir manejador de eventos para interacción
+    // Referencia al div de información
+    const infoBox = document.getElementById('infoBox');
+    
+    // Función para obtener el último valor de un array
+    function getLastValue(arr) {
+      return arr[arr.length - 1];
+    }
+    
+    // Función para formatear valores con unidades
+    function formatValue(value, unit) {
+      return `${value} ${unit}`;
+    }
+    
+    // Añadir manejador de eventos para mostrar información de potabilidad
     viewer.screenSpaceEventHandler.setInputAction(function(movement) {
       const pickedObject = viewer.scene.pick(movement.position);
+      
       if (Cesium.defined(pickedObject) && pickedObject.id) {
-        alert(`Sensor activado en: ${pickedObject.id.name}`);
+        const entity = pickedObject.id;
+        
+        if (entity.properties && entity.properties.sensorData) {
+          const sensorData = entity.properties.sensorData.getValue();
+          
+          // Crear contenido HTML para el infoBox
+          let content = `<h3>${entity.name}</h3>`;
+          content += `<div class="data-row">
+                        <span class="data-label">Sensor ID:</span>
+                        <span class="data-value">${sensorData.labels[0]}</span>
+                      </div>`;
+          content += `<div class="data-row">
+                        <span class="data-label">pH:</span>
+                        <span class="data-value">${getLastValue(sensorData.ph)}</span>
+                      </div>`;
+          content += `<div class="data-row">
+                        <span class="data-label">Sólidos disueltos:</span>
+                        <span class="data-value">${formatValue(getLastValue(sensorData.solids), "mg/L")}</span>
+                      </div>`;
+          content += `<div class="data-row">
+                        <span class="data-label">Conductividad:</span>
+                        <span class="data-value">${formatValue(getLastValue(sensorData.conductivity), "µS/cm")}</span>
+                      </div>`;
+          content += `<div class="data-row">
+                        <span class="data-label">Materia orgánica:</span>
+                        <span class="data-value">${formatValue(getLastValue(sensorData.organic), "mg/L")}</span>
+                      </div>`;
+          content += `<div class="data-row">
+                        <span class="data-label">Turbidez:</span>
+                        <span class="data-value">${formatValue(getLastValue(sensorData.turbidity), "NTU")}</span>
+                      </div>`;
+          
+          // Añadir indicador de potabilidad
+          const isPotable = sensorData.potability[0];
+          content += `<div class="potability not-potable">
+                        AGUA NO POTABLE
+                      </div>`;
+          
+          // Añadir timestamp
+          content += `<div class="date">
+                        Última medición: ${sensorData.timestamp}
+                      </div>`;
+          
+          // Mostrar el infoBox cerca del punto
+          infoBox.innerHTML = content;
+          infoBox.style.display = 'block';
+          
+          // Posicionar el infoBox cerca del punto
+          const canvasPosition = movement.position;
+          infoBox.style.left = (canvasPosition.x + 10) + 'px';
+          infoBox.style.top = (canvasPosition.y - 20) + 'px';
+        }
+      } else {
+        // Ocultar el infoBox si se hace clic fuera de un punto
+        infoBox.style.display = 'none';
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    
+    // Ocultar el infoBox al hacer doble clic en cualquier parte del mapa
+    viewer.screenSpaceEventHandler.setInputAction(function() {
+      infoBox.style.display = 'none';
+    }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
   </script>
 </body>
 </html>
-
