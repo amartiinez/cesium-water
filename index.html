@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.128/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.128/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  <link href="style.css" rel="stylesheet">
+</head>
+<body>
+  <div id="cesiumContainer"></div>
+  <script type="module">
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIzYjYyMTRlZS02ODVkLTRmNjMtOWJkOS00YTEyODE3ZTU3NmUiLCJpZCI6MjkxNjE2LCJpYXQiOjE3NDQwMjAxMzB9.sBsqip4K7A5iMFiYBLeMY9HBkVK0jXWVqBxwttCQtm4';
+    
+    const viewer = new Cesium.Viewer('cesiumContainer', {
+      terrain: Cesium.Terrain.fromWorldTerrain(),
+    });
+
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(-3.684500, 40.415260, 2000)
+    });
+
+    // Definir las coordenadas de los cuerpos de agua del Retiro
+    const waterBodies = [
+      {
+        name: "Estanque Grande",
+        coordinates: [
+          -3.6826, 40.4157,
+          -3.6818, 40.4157,
+          -3.6818, 40.4152,
+          -3.6826, 40.4152,
+        ]
+      },
+      {
+        name: "Estanque de las Campanillas",
+        coordinates: [
+          -3.6864, 40.4135,
+          -3.6860, 40.4135,
+          -3.6860, 40.4132,
+          -3.6864, 40.4132,
+        ]
+      }
+    ];
+
+    // Crear entidades para los cuerpos de agua
+    waterBodies.forEach(body => {
+      viewer.entities.add({
+        name: body.name,
+        polygon: {
+          hierarchy: Cesium.Cartesian3.fromDegreesArray(body.coordinates),
+          material: Cesium.Color.BLUE.withAlpha(0.5),
+          extrudedHeight: 0.5
+        }
+      });
+    });
+
+    // Añadir manejador de eventos para interacción
+    viewer.screenSpaceEventHandler.setInputAction(function(movement) {
+      const pickedObject = viewer.scene.pick(movement.position);
+      if (Cesium.defined(pickedObject) && pickedObject.id) {
+        alert(`Sensor activado en: ${pickedObject.id.name}`);
+      }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+  </script>
+</body>
+</html>
+
