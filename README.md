@@ -1,6 +1,11 @@
-Cesium Template App
-===================
+Testeando capas de mapa de Cesium para posible implementación en el front de potabilidad del agua
 
-This is a template for making Cesium apps. Click on `index.html` on the left to see the code.
+https://cesium.com/learn/ion/integrations-learn/
 
-New to Cesium? Visit our [learning center](http://cesium.com/docs) to get started.
+https://cesium.com/platform/cesium-for-unreal/
+
+https://cesium.com/platform/cesiumjs/
+
+https://cesium.com/learn/cesiumjs-learn/cesiumjs-interactive-building/
+
+https://deck.gl/docs/api-reference/geo-layers/tile-3d-layer
