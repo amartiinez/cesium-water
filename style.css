@@ -8,3 +8,50 @@ body {
 #cesiumContainer {
   height: 100%;
 }
+.infoBox {
+  position: absolute;
+  background: rgba(0, 32, 77, 0.9);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  font-family: 'Arial', sans-serif;
+  max-width: 300px;
+  display: none;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  border-left: 5px solid #0078ff;
+}
+.infoBox h3 {
+  margin-top: 0;
+  color: #0078ff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  padding-bottom: 8px;
+}
+.infoBox .data-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
+}
+.infoBox .data-label {
+  font-weight: bold;
+  color: #8ecaff;
+}
+.infoBox .data-value {
+  text-align: right;
+}
+.infoBox .potability {
+  margin-top: 10px;
+  padding: 8px;
+  text-align: center;
+  border-radius: 4px;
+  font-weight: bold;
+}
+.infoBox .not-potable {
+  background-color: #ff3b30;
+}
+.infoBox .date {
+  font-size: 0.8em;
+  text-align: right;
+  margin-top: 10px;
+  color: #8ecaff;
+}
